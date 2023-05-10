@@ -6,7 +6,10 @@
 # 102835 Sofia Paiva
 # 102904 Mariana Miranda
 
+import numpy as np
 import sys
+from sys import stdin
+
 from search import (
     Problem,
     Node,
@@ -54,17 +57,28 @@ class Board:
 
     @staticmethod
     def parse_instance():
-        """Lê o test do standard input (stdin) que é passado como argumento
-        e retorna uma instância da classe Board.
+      """Lê o test do standard input (stdin) que é passado como argumento
+      e retorna uma instância da classe Board.
 
-        Por exemplo:
-            $ python3 bimaru.py < input_T01
+      Por exemplo:
+         $ python3 bimaru.py < input_T01
 
-            > from sys import stdin
-            > line = stdin.readline().split()
-        """
-        # TODO
-        pass
+         > from sys import stdin
+         > line = stdin.readline().split()
+      """
+      row = stdin.readline().rstrip('\n').split('\t')
+      columns = stdin.readline().rstrip('\n').split('\t')
+      hints = stdin.readline().rstrip('\n').split('\t')
+      print(row)
+      print(columns)
+      print(hints)
+      i = int(hints[0])
+      while i > 0:
+         hint = stdin.readline().rstrip('\n').split('\t')
+         i = i - 1
+         print(hint)
+      # TODO
+      #pass
 
     # TODO: outros metodos da classe
 
@@ -105,9 +119,12 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
-    # TODO:
-    # Ler o ficheiro do standard input,
-    # Usar uma técnica de procura para resolver a instância,
-    # Retirar a solução a partir do nó resultante,
-    # Imprimir para o standard output no formato indicado.
-    pass
+   board = Board()
+   board.parse_instance()
+
+   # TODO:
+   # Ler o ficheiro do standard input,
+   # Usar uma técnica de procura para resolver a instância,
+   # Retirar a solução a partir do nó resultante,
+   # Imprimir para o standard output no formato indicado.
+   pass
