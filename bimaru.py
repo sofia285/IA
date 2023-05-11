@@ -38,47 +38,75 @@ class BimaruState:
 class Board:
     """Representação interna de um tabuleiro de Bimaru."""
 
+    def __init__(self, board: np.ndarray):
+        """Construtor da classe"""
+        self.board = board
+
+
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        # TODO
-        pass
 
-    def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
+        return self.board[row][col]
+
+    def adjacent_vertical_values(self, row: int, col: int) -> tuple:#(str, str) estava a dar erro
         """Devolve os valores imediatamente acima e abaixo,
         respectivamente."""
-        # TODO
-        pass
+        return self.board[row - 1][col], self.board[row + 1][col]
 
-    def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
+    def adjacent_horizontal_values(self, row: int, col: int) -> tuple:
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
-        # TODO
-        pass
+        return self.board[row][col - 1], self.board[row][col + 1]
 
     @staticmethod
     def parse_instance():
-      """Lê o test do standard input (stdin) que é passado como argumento
-      e retorna uma instância da classe Board.
+        """Lê o test do standard input (stdin) que é passado como argumento
+        e retorna uma instância da classe Board.
+        formato do input:
+        1. ROW <count-0> ... <count-9>
+        2. COLUMN <count-0> ... <count-9>
+        3. <hint total>
+        4. HINT <row> <column> <hint value>
 
-      Por exemplo:
-         $ python3 bimaru.py < input_T01
+        Por exemplo:
+            $ python3 bimaru.py < input_T01
 
-         > from sys import stdin
-         > line = stdin.readline().split()
-      """
-      row = stdin.readline().rstrip('\n').split('\t')
-      columns = stdin.readline().rstrip('\n').split('\t')
-      hints = stdin.readline().rstrip('\n').split('\t')
-      print(row)
-      print(columns)
-      print(hints)
-      i = int(hints[0])
-      while i > 0:
-         hint = stdin.readline().rstrip('\n').split('\t')
-         i = i - 1
-         print(hint)
-      # TODO
-      #pass
+            > from sys import stdin
+            > line = stdin.readline().split()
+        """
+        # row = stdin.readline().rstrip('\n').split('\t')
+        # columns = stdin.readline().rstrip('\n').split('\t')
+        # hints = stdin.readline().rstrip('\n').split('\t')
+        # print(row)
+        # print(columns)
+        # print(hints)
+        # i = int(hints[0])
+        # while i > 0:
+        #     hint = stdin.readline().rstrip('\n').split('\t')
+        #     i = i - 1
+        #     print(hint)
+
+
+        row_line = stdin.readline().rstrip('\n').split('\t')
+        row = [int(x) for x in row_line[1:]]
+
+        column_line = stdin.readline().rstrip('\n').split('\t')
+        column = [int(x) for x in column_line[1:]]
+        num_hints = int(input())
+
+        board = np.zeros((11, 11), dtype=str)
+        board[0] = row
+        board[:, 0] = column
+
+        for i in range(num_hints):
+            hint_line = stdin.readline().rstrip('\n').split('\t')
+            hint = hint_line[3]
+            hint_row = int(hint_line[1]) - 1
+            hint_column = int(hint_line[2]) - 1
+            board[hint_row][hint_column] = hint
+        
+        return Board(board)
+        # TODO: Ainda não testei!!!
 
     # TODO: outros metodos da classe
 
@@ -119,8 +147,7 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
-   board = Board()
-   board.parse_instance()
+   board = Board.parse_instance()
 
    # TODO:
    # Ler o ficheiro do standard input,
