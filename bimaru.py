@@ -95,6 +95,7 @@ class Board:
 class Bimaru(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
+        self.initial = BimaruState(board)
         # TODO
         pass
 
