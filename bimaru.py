@@ -6,6 +6,14 @@
 # 102835 Sofia Paiva
 # 102904 Mariana Miranda
 
+WATER = '.'
+CIRCLE = 'c'
+TOP = 't'
+MIDDLE = 'm'
+BOTTOM = 'b'
+LEFT = 'l'
+RIGHT = 'r'
+
 import numpy as np
 import sys
 from sys import stdin
@@ -32,6 +40,8 @@ class BimaruState:
    def __lt__(self, other):
       return self.id < other.id
 
+   
+   
    # TODO: outros metodos da classe
 
 
@@ -57,6 +67,50 @@ class Board:
       """Devolve os valores imediatamente à esquerda e à direita,
       respectivamente."""
       return self.board[row][col - 1], self.board[row][col + 1]
+
+   def get_row(self, row: int) -> np.ndarray:
+      """Devolve a linha especificada pelo argumento 'row'."""
+      return self.board[row]
+   
+   def get_column(self, col: int) -> np.ndarray:
+      """Devolve a coluna especificada pelo argumento 'col'."""
+      return self.board[:, col]
+   
+   def set_value(self, row: int, col: int, value: str):
+      """Atribui o valor 'value' à posição especificada pelos
+      argumentos 'row' e 'col'."""
+      self.board[row][col] = value
+
+   def get_col_count(self, col: int) -> str:
+     """Deveolve a contagem da coluna especificada pelo argumento 'col'."""
+     return self.board[10][col]
+   
+   def get_row_count(self, row: int) -> str:
+       """Deveolve a contagem da linha especificada pelo argumento 'row'."""
+       return self.board[row][10]
+   
+   def fill_row_water(self, row: int):
+      """Preenche a linha especificada pelo argumento 'row' com àgua nos lugares livres."""
+      for i in range(10):
+         if self.board[row][i] == '':
+            self.board[row][i] = WATER
+
+   def fill_col_water(self, col: int):
+      """Preenche a coluna especificada pelo argumento 'col' com àgua nos lugares livres."""
+      for i in range(10):
+         if self.board[i][col] == '':
+            self.board[i][col] = WATER
+
+   def fill_water(self):
+      """ Preenche as posições que só podem ter àgua"""
+
+      for i in range(10):
+         if self.get_row_count(i) == '0':
+            self.fill_row_water(i)
+
+      for i in range(10):
+         if self.get_col_count(i) == '0':
+            self.fill_col_water(i)   
 
    @staticmethod
    def parse_instance():
