@@ -103,14 +103,39 @@ class Board:
 
    def fill_water(self):
       """ Preenche as posições que só podem ter àgua"""
+      #TODO: verificar posição antes de meter agua
 
       for i in range(10):
          if self.get_row_count(i) == '0':
             self.fill_row_water(i)
-
-      for i in range(10):
-         if self.get_col_count(i) == '0':
+      
+         elif self.get_col_count(i) == '0':
             self.fill_col_water(i)   
+      
+      # Mete agua a toda a volta dos circulos
+      for i in range(10):
+        for j in range(10):
+            if self.get_value(i, j) == 'C':
+                for di in range(-1, 2):
+                    for dj in range(-1, 2):
+                        if di == 0 and dj == 0:
+                            continue
+                        if 0 <= i + di < 10 and 0 <= j + dj < 9:
+                            self.set_value(i + di, j + dj, WATER)
+            elif self.get_value(i, j) == 'T':
+                for di in range(-1, 2):
+                    for dj in range(-1, 2):
+                        if (di == 0 and dj == 0) or (di == 1 and dj == 0):
+                            continue
+                        if 0 <= i + di < 10 and 0 <= j + dj < 9:
+                            self.set_value(i + di, j + dj, WATER)
+            elif self.get_value(i, j) == 'B':
+                for di in range(-1, 2):
+                    for dj in range(-1, 2):
+                        if (di == 0 and dj == 0) or (di == -1 and dj == 0):
+                            continue
+                        if 0 <= i + di < 10 and 0 <= j + dj < 9:
+                            self.set_value(i + di, j + dj, WATER) 
 
    @staticmethod
    def parse_instance():
@@ -183,11 +208,14 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
-   board = Board.parse_instance()
 
    # TODO:
    # Ler o ficheiro do standard input,
    # Usar uma técnica de procura para resolver a instância,
    # Retirar a solução a partir do nó resultante,
    # Imprimir para o standard output no formato indicado.
-   pass
+   board = Board.parse_instance()
+   #board.fill_water()
+    #print the board
+   for row in board.board:
+      print(' '.join(format(cell, '<1') for cell in row))
