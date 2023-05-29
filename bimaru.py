@@ -13,6 +13,10 @@ MIDDLE = 'm'
 BOTTOM = 'b'
 LEFT = 'l'
 RIGHT = 'r'
+N_COURACADO = 1
+N_CRUZADOR = 2
+N_CONTRATORPECIDOS = 3
+N_SUBMARINO = 4
 
 import numpy as np
 import sys
@@ -31,16 +35,27 @@ from search import (
 
 class BimaruState:
    state_id = 0
+   
 
    def __init__(self, board):
       self.board = board
       self.id = BimaruState.state_id
       BimaruState.state_id += 1
+      self.num_boats ={
+         'couracado': 0,
+         'cruzador': 0,
+         'contratorpecidos': 0,
+         'submarino': 0,
+      }
 
    def __lt__(self, other):
       return self.id < other.id
 
-   
+   def set_num_boats(self, boat_type, num):
+      self.num_boats[boat_type] = num
+
+   def get_num_boats(self, boat_type):
+      return self.num_boats[boat_type]
    
    # TODO: outros metodos da classe
 
@@ -58,15 +73,26 @@ class Board:
 
       return self.board[row][col]
 
-   def adjacent_vertical_values(self, row: int, col: int) -> tuple:#(str, str) estava a dar erro
+   def adjacent_vertical_values(self, row: int, col: int) -> tuple:
       """Devolve os valores imediatamente acima e abaixo,
       respectivamente."""
-      return self.board[row - 1][col], self.board[row + 1][col]
+      if row == 0:
+         return None, self.get_value(row + 1, col)
+      elif row == 9:
+         return self.get_value(row - 1, col), None
+      else:
+         return self.get_value(row - 1, col), self.get_value(row + 1, col)
 
    def adjacent_horizontal_values(self, row: int, col: int) -> tuple:
       """Devolve os valores imediatamente à esquerda e à direita,
       respectivamente."""
-      return self.board[row][col - 1], self.board[row][col + 1]
+      if col == 0:
+         return None, self.get_value(row, col + 1)
+      elif col == 9:
+         return self.get_value(row, col - 1), None
+      else:
+         return self.get_value(row, col - 1), self.get_value(row, col + 1)
+      
 
    def get_row(self, row: int) -> np.ndarray:
       """Devolve a linha especificada pelo argumento 'row'."""
@@ -81,13 +107,13 @@ class Board:
       argumentos 'row' e 'col'."""
       self.board[row][col] = value
 
-   def get_col_count(self, col: int) -> str:
+   def get_col_count(self, col: int) -> int:
      """Deveolve a contagem da coluna especificada pelo argumento 'col'."""
-     return self.board[10][col]
+     return int(self.board[10][col])
    
-   def get_row_count(self, row: int) -> str:
+   def get_row_count(self, row: int) -> int:
        """Deveolve a contagem da linha especificada pelo argumento 'row'."""
-       return self.board[row][10]
+       return int(self.board[row][10])
    
    def fill_row_water(self, row: int):
       """Preenche a linha especificada pelo argumento 'row' com àgua nos lugares livres."""
@@ -136,6 +162,15 @@ class Board:
                             continue
                         if 0 <= i + di < 10 and 0 <= j + dj < 9:
                             self.set_value(i + di, j + dj, WATER) 
+
+   def try_couracado(self, row: int, col: int) -> bool:
+      """Verifica se é possível colocar um couraçado na posição especificada pelos argumentos 'row' e 'col'."""
+      if self.get_value(row, col) != '':
+         return False
+      if self.get_row_count(row) < 4 or self.get_col_count(col) < 4:
+         return False
+      return True
+      #falta mt coisa
 
    @staticmethod
    def parse_instance():
