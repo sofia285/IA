@@ -127,16 +127,33 @@ class Board:
          if self.board[i][col] == '':
             self.board[i][col] = WATER
 
+   def is_full_col(self, col: int) -> bool:
+      """Verifica se a coluna especificada pelo argumento 'col' está cheia."""
+      boats = 0
+      for i in range(10):
+         if (self.board[i][col] != '') and (self.board[i][col] != WATER):
+            boats += 1
+      
+      if boats == self.get_col_count(col):
+         return True
+      else:
+         return False
+   
+   def is_full_row(self, row: int) -> bool:
+      """Verifica se a linha especificada pelo argumento 'row' está cheia."""
+      boats = 0
+      for i in range(10):
+         if (self.board[row][i] != '') and (self.board[row][i] != WATER):
+            boats += 1
+      
+      if boats == self.get_row_count(row):
+         return True
+      else:
+         return False
+
    def fill_water(self):
       """ Preenche as posições que só podem ter àgua"""
-      #TODO: verificar posição antes de meter agua
-
-      for i in range(10):
-         if self.get_row_count(i) == '0':
-            self.fill_row_water(i)
-      
-         elif self.get_col_count(i) == '0':
-            self.fill_col_water(i)   
+      #TODO: verificar posição antes de meter agua  
       
       # Mete agua a toda a volta dos circulos
       for i in range(10):
@@ -162,6 +179,13 @@ class Board:
                             continue
                         if 0 <= i + di < 10 and 0 <= j + dj < 9:
                             self.set_value(i + di, j + dj, WATER) 
+      """ Preenche as linhas e colunas que estão cheias"""
+      for i in range(10):
+         if self.is_full_row(i):
+            self.fill_row_water(i)
+      
+         elif self.is_full_col(i):
+            self.fill_col_water(i) 
 
    def try_couracado(self, row: int, col: int) -> bool:
       """Verifica se é possível colocar um couraçado na posição especificada pelos argumentos 'row' e 'col'."""
@@ -250,7 +274,7 @@ if __name__ == "__main__":
    # Retirar a solução a partir do nó resultante,
    # Imprimir para o standard output no formato indicado.
    board = Board.parse_instance()
-   #board.fill_water()
+   board.fill_water()
     #print the board
    for row in board.board:
       print(' '.join(format(cell, '<1') for cell in row))
