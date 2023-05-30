@@ -6,7 +6,10 @@
 # 102835 Sofia Paiva
 # 102904 Mariana Miranda
 
-WATER = '.'
+WATER = 0
+BOAT = 1
+EMPTY = 1
+
 CIRCLE = 'c'
 TOP = 't'
 MIDDLE = 'm'
@@ -101,7 +104,7 @@ class Board:
    def get_column(self, col: int) -> np.ndarray:
       """Devolve a coluna especificada pelo argumento 'col'."""
       return self.board[:, col]
-   
+      
    def set_value(self, row: int, col: int, value: str):
       """Atribui o valor 'value' à posição especificada pelos
       argumentos 'row' e 'col'."""
@@ -154,47 +157,19 @@ class Board:
    def fill_water(self):
       """ Preenche as posições que só podem ter àgua"""
       #TODO: verificar posição antes de meter agua  
+      same = True
+      while same:
+         for i in range(10):
+            row_sum = np.sum(self.board[0][i])
+            col_sum = np.sum(self.board[0][:][i])
+            if (row_sum == self.board[2][i][9]):
+               self.board[1][i] = np.zeros(10, dtype=int)
+               same = False
+            if (col_sum == self.board[2][i][0]):
+               self.board[1][:][i] = np.zeros(10, dtype=int)
+               same = False
       
       # Mete agua a toda a volta dos circulos
-      for i in range(10):
-        for j in range(10):
-            if self.get_value(i, j) == 'C':
-                for di in range(-1, 2):
-                    for dj in range(-1, 2):
-                        if di == 0 and dj == 0:
-                            continue
-                        if 0 <= i + di < 10 and 0 <= j + dj < 9:
-                            self.set_value(i + di, j + dj, WATER)
-            elif self.get_value(i, j) == 'T':
-                for di in range(-1, 2):
-                    for dj in range(-1, 2):
-                        if (di == 0 and dj == 0) or (di == 1 and dj == 0):
-                            continue
-                        if 0 <= i + di < 10 and 0 <= j + dj < 9:
-                            self.set_value(i + di, j + dj, WATER)
-            elif self.get_value(i, j) == 'B':
-                for di in range(-1, 2):
-                    for dj in range(-1, 2):
-                        if (di == 0 and dj == 0) or (di == -1 and dj == 0):
-                            continue
-                        if 0 <= i + di < 10 and 0 <= j + dj < 9:
-                            self.set_value(i + di, j + dj, WATER) 
-      """ Preenche as linhas e colunas que estão cheias"""
-      for i in range(10):
-         if self.is_full_row(i):
-            self.fill_row_water(i)
-      
-         elif self.is_full_col(i):
-            self.fill_col_water(i) 
-
-   def try_couracado(self, row: int, col: int) -> bool:
-      """Verifica se é possível colocar um couraçado na posição especificada pelos argumentos 'row' e 'col'."""
-      if self.get_value(row, col) != '':
-         return False
-      if self.get_row_count(row) < 4 or self.get_col_count(col) < 4:
-         return False
-      return True
-      #falta mt coisa
 
    @staticmethod
    def parse_instance():
@@ -207,24 +182,181 @@ class Board:
       4. HINT <row> <column> <hint value>
       """
 
+      #row with hint
       row_line = stdin.readline().rstrip('\n').split('\t')
       row = [int(x) for x in row_line[1:]]
 
+      #column with hint
       column_line = stdin.readline().rstrip('\n').split('\t')
       column = [int(x) for x in column_line[1:]]
       num_hints = int(input())
 
-      board = np.zeros((11, 11), dtype=str)
-      board[:-1, -1] = row
-      board[-1, :-1] = column
+      #creating board with letters
+      original_board = np.zeros((11, 11), dtype=str)
+      original_board[:-1, -1] = row
+      original_board[-1, :-1] = column
 
-
+      #adding hints to board
       for i in range(num_hints):
          hint_line = stdin.readline().rstrip('\n').split('\t')
          hint = hint_line[3]
          hint_row = int(hint_line[1])
          hint_column = int(hint_line[2])
-         board[hint_row][hint_column] = hint
+         original_board[hint_row][hint_column] = hint
+      
+      #creating board with numbers
+      board = np.ones((3,10,10), dtype=int)
+      board[0] = np.zeros((10, 10), dtype=int)
+
+      #adding hints to board
+      for i in range (10):
+         board[2][i][9] = int(original_board[i][10])
+         board[2][i][0] = int(original_board[10][i])
+      
+      #adding boats to board
+      for row in range (10):
+         for col in range (10):
+            if original_board[row][col] == 'W':
+               board[1][row][col] = WATER
+            elif (original_board[row][col] != ''):
+               board[0][row][col] = BOAT
+               if original_board[i][col] == 'T':
+                  board[0][row + 1][col] = BOAT
+                  if (row == 9):
+                     if (col == 0):
+                        board[1][row][col + 1] = WATER
+                     elif (col == 9):
+                        board[1][row][col - 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row][col + 1] = WATER
+                  elif (col == 0):
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                  elif (col == 9):
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                  else:
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row][col + 1] = WATER
+
+               elif original_board[row][col] == 'B':
+                  board[0][row - 1][col] = BOAT
+                  if (row == 9):
+                     if (col == 0):
+                        board[1][row][col + 1] = WATER
+                     elif (col == 9):
+                        board[1][row][col - 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row][col + 1] = WATER
+                  elif (col == 0):
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                  elif (col == 9):
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                  else:
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row][col + 1] = WATER
+   
+               elif original_board[row][col] == 'R':
+                  board[0][row][col - 1] = BOAT
+                  if (row == 9):
+                     if (col == 0):
+                        board[1][row][col + 1] = WATER
+                     elif (col == 9):
+                        board[1][row][col - 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row][col + 1] = WATER
+                  elif (col == 0):
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                  elif (col == 9):
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                  else:
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row][col + 1] = WATER
+
+               elif original_board[row][col] == 'L':
+                  board[0][row][col + 1] = BOAT
+                  if (row == 9):
+                     if (col == 0):
+                        board[1][row][col + 1] = WATER
+                     elif (col == 9):
+                        board[1][row][col - 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row][col + 1] = WATER
+                  elif (col == 0):
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                  elif (col == 9):
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                  else:
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row][col + 1] = WATER
+                  
+               elif original_board[row][col] == 'C':
+                  if (row == 0):
+                     if (col == 0):
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                     elif (col == 9):
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                  elif (row == 9):
+                     if (col == 0):
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                     elif (col == 9):
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                  elif (col == 0):
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                  elif (col == 9):
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                  else:
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row][col + 1] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1]
+                     board[1][row - 1][col - 1]
+                     board[1][row + 1][col - 1]
+                     board[1][row - 1][col + 1]
+
       return Board(board)
 
       # TODO: outros metodos da classe
@@ -275,6 +407,5 @@ if __name__ == "__main__":
    # Imprimir para o standard output no formato indicado.
    board = Board.parse_instance()
    board.fill_water()
-    #print the board
-   for row in board.board:
-      print(' '.join(format(cell, '<1') for cell in row))
+   print(board.board)
+   
