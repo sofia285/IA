@@ -343,17 +343,17 @@ if __name__ == "__main__":
    # Imprimir para o standard output no formato indicado.
    
    board = Board.parse_instance()
-   for i in range(10):
-      board.calculate_state()
-      print(board.board)
-      print('\n')
-      board.fill_water()
-      print(board.board)
-      print('\n')
-      board.complete_pos()
-      #print the board
-      # for row in board.board:
-      #    print(' '.join(format(cell, '<1') for cell in row))
-      print(board.board)
-      print('\n')
-      print(board.num_boats)
+   
+   board.calculate_state()
+   print(board.board)
+   print('\n')
+   board.fill_water()
+   print(board.board)
+   print('\n')
+   board.complete_pos()
+   #print the board
+   # for row in board.board:
+   #    print(' '.join(format(cell, '<1') for cell in row))
+   print(board.board)
+   print('\n')
+   print(board.num_boats)
