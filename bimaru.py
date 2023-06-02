@@ -125,6 +125,10 @@ class Board:
    def get_empty_spaces_count(self):
       """Devolve se existe algum espaço vazio no tabuleiro."""
       return np.any(self.board[1] == 1)
+   
+   def get_boats_count(self):
+      """Devolve se existe algum espaço vazio no tabuleiro."""
+      return self.num_boats['couracado'] == 4 and self.num_boats['cruzador'] == 3 and self.num_boats['contratorpecidos'] == 2 and self.num_boats['submarino'] == 1
 
    def has_been_visited(self, dim: int, row: int, col: int) -> bool:
       """Devolve se a posição já foi visitada."""
@@ -155,7 +159,8 @@ class Board:
                line += MIDDLE
             else:
                line += '.'
-         line += '\n'
+         if (i < 9):
+            line += '\n'
          
       print(line)
    
@@ -652,32 +657,34 @@ class Bimaru(Problem):
    def __init__(self, board: Board):
       """O construtor especifica o estado inicial."""
       state = BimaruState(board)
-      super().__init__(state)
 
    def actions(self, state: BimaruState):
       """Retorna uma lista de ações que podem ser executadas a
       partir do estado passado como argumento."""
-      # TODO
-      pass
+      return [WATER, BOAT]
 
    def result(self, state: BimaruState, action):
       """Retorna o estado resultante de executar a 'action' sobre
       'state' passado como argumento. A ação a executar deve ser uma
       das presentes na lista obtida pela execução de
       self.actions(state)."""
-      # TODO
-      pass
+      for i in range (10):
+         for j in range (10):
+            if state.board[1][i][j] == 1:
+               state.board[0][i][j] = action
+               state.board[1][i][j] = WATER
+               return state.board
 
    def goal_test(self, state: BimaruState):
       """Retorna True se e só se o estado passado como argumento é
       um estado objetivo. Deve verificar se todas as posições do tabuleiro
       estão preenchidas de acordo com as regras do problema."""
-      return state.board.get_empty_spaces_count()
+      return state.board.get_boats_count() and state.board.get_empty_spaces_count()
 
    def h(self, node: Node):
       """Função heuristica utilizada para a procura A*."""
-      board = node.state.board
-      return board.count_pos_with_two_actions
+      # TODO
+      pass
 
 
 if __name__ == "__main__":
