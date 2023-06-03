@@ -118,6 +118,114 @@ class BimaruState:
          valid_positions.append((row, col + 2, MIDDLE))
          valid_positions.append((row, col + 3, RIGHT))
 
+      if valid_positions != []:
+         self.board.num_boats['couracado'] += 1
+
+      return valid_positions
+   
+   def try_cruzador(self, row: int, col: int):
+      """Verifica se é possível colocar um cruzador na posição especificada pelos argumentos 'row' e 'col'."""
+      pos = self.board.get_value(row, col)
+      valid_positions = []
+
+      if self.empty_cells() == 0:
+         return False
+      if self.board.get_row_count(row) < 3 and self.board.get_col_count(col) < 3:
+         return False
+      
+      if pos == TOP and row + 2 < 10 and self.board.get_value(row + 1, col) in {MIDDLE, TEMP, EMPTY} and \
+            self.board.get_value(row + 2, col) in {BOTTOM, TEMP, EMPTY}:
+         valid_positions.append((row, col, TOP))
+         valid_positions.append((row + 1, col, MIDDLE))
+         valid_positions.append((row + 2, col, BOTTOM))
+
+      if pos == BOTTOM and row - 2 >= 0 and self.board.get_value(row - 1, col) in {MIDDLE, TEMP, EMPTY} and \
+            self.board.get_value(row - 2, col) in {TOP, TEMP, EMPTY}:
+         valid_positions.append((row, col, BOTTOM))
+         valid_positions.append((row - 1, col, MIDDLE))
+         valid_positions.append((row - 2, col, TOP))
+
+      if pos == LEFT and col + 2 < 10 and self.board.get_value(row, col + 1) in {MIDDLE, TEMP, EMPTY} and \
+            self.board.get_value(row, col + 2) in {RIGHT, TEMP, EMPTY}:
+         valid_positions.append((row, col, LEFT))
+         valid_positions.append((row, col + 1, MIDDLE))
+         valid_positions.append((row, col + 2, RIGHT))
+
+      if pos == RIGHT and col - 2 <= 0 and self.board.get_value(row, col - 1) in {MIDDLE, TEMP, EMPTY} and \
+            self.board.get_value(row, col - 2) in {LEFT, TEMP, EMPTY}:
+         valid_positions.append((row, col, RIGHT))
+         valid_positions.append((row, col - 1, MIDDLE))
+         valid_positions.append((row, col - 2, LEFT))
+
+      if pos == EMPTY and row + 2 < 10 and self.board.get_value(row + 1, col) in {MIDDLE, TEMP, EMPTY} and \
+            self.board.get_value(row + 2, col) in {BOTTOM, TEMP, EMPTY}:
+         valid_positions.append((row, col, TOP))
+         valid_positions.append((row + 1, col, MIDDLE))
+         valid_positions.append((row + 2, col, BOTTOM))
+
+      if pos == EMPTY and col + 2 < 10 and self.board.get_value(col + 1, row) in {MIDDLE, TEMP, EMPTY} and \
+            self.board.get_value(col + 2, row) in {RIGHT, TEMP, EMPTY}:
+         valid_positions.append((row, col, LEFT))
+         valid_positions.append((row, col + 1, MIDDLE))
+         valid_positions.append((row, col + 2, RIGHT))
+
+      if valid_positions != []:
+         self.board.num_boats['cruzador'] += 1
+
+      return valid_positions
+   
+   def try_contratorpedeiro(self, row: int, col: int):
+      """Verifica se é possível colocar um contratorpedeiro na posição especificada pelos argumentos 'row' e 'col'."""
+      pos = self.board.get_value(row, col)
+      valid_positions = []
+
+      if self.empty_cells() == 0:
+         return False
+      if self.board.get_row_count(row) < 2 and self.board.get_col_count(col) < 2:
+         return False
+      
+      if pos == TOP and row + 1 < 10 and self.board.get_value(row + 1, col) in {BOTTOM, TEMP, EMPTY}:
+         valid_positions.append((row, col, TOP))
+         valid_positions.append((row + 1, col, BOTTOM))
+
+      if pos == BOTTOM and row - 1 >= 0 and self.board.get_value(row - 1, col) in {TOP, TEMP, EMPTY}:
+         valid_positions.append((row, col, BOTTOM))
+         valid_positions.append((row - 1, col, TOP))
+
+      if pos == LEFT and col + 1 < 10 and self.board.get_value(row, col + 1) in {RIGHT, TEMP, EMPTY}:
+         valid_positions.append((row, col, LEFT))
+         valid_positions.append((row, col + 1, RIGHT))
+
+      if pos == RIGHT and col - 1 <= 0 and self.board.get_value(row, col - 1) in {LEFT, TEMP, EMPTY}:
+         valid_positions.append((row, col, RIGHT))
+         valid_positions.append((row, col - 1, LEFT))
+
+      if pos == EMPTY and row + 1 < 10 and self.board.get_value(row + 1, col) in {BOTTOM, TEMP, EMPTY}:
+         valid_positions.append((row, col, TOP))
+         valid_positions.append((row + 1, col, BOTTOM))
+
+      if pos == EMPTY and col + 1 < 10 and self.board.get_value(col + 1, row) in {RIGHT, TEMP, EMPTY}:
+         valid_positions.append((row, col, LEFT))
+         valid_positions.append((row, col + 1, RIGHT))
+
+      if valid_positions != []:
+         self.board.num_boats['contratorpedeiro'] += 1
+
+      return valid_positions
+   
+   def try_submarino(self, row: int, col: int):
+      """Verifica se é possível colocar um submarino na posição especificada pelos argumentos 'row' e 'col'."""
+      pos = self.board.get_value(row, col)
+      valid_positions = []
+
+      if self.empty_cells() == 0:
+         return False
+      
+      if pos == EMPTY and self.board.adjacent_vertical_values(row, col) in {(WATER, WATER), (WATER, EMPTY), (EMPTY, WATER), (EMPTY, EMPTY)} and \
+            self.board.adjacent_horizontal_values(row, col) in {(WATER, WATER), (WATER, EMPTY), (EMPTY, WATER), (EMPTY, EMPTY)}:
+         valid_positions.append((row, col, CIRCLE))
+         self.board.num_boats['submarino'] += 1
+         
       return valid_positions
       
    def do_action(self, action: tuple):
@@ -424,6 +532,22 @@ class Bimaru(Problem):
                if valid_positions:
                   actions.extend(valid_positions)
       elif state.board.num_boats['cruzador'] < 2:
+         # tenta colocar um cruzador
+         for row in range(10):
+            for col in range(10):
+               valid_positions = state.try_cruzador(row, col)
+               if valid_positions:
+                  actions.extend(valid_positions)
+      elif state.board.num_boats['contratorpedeiro'] < 3:
+         # tenta colocar um contratorpedeiro
+         for row in range(10):
+            for col in range(10):
+               valid_positions = state.try_contratorpedeiro(row, col)
+               if valid_positions:
+                  actions.extend(valid_positions)
+      elif state.board.num_boats['submarino'] < 4:
+         # tenta colocar um submarino
+
          pass
                   
       return actions
@@ -466,7 +590,7 @@ if __name__ == "__main__":
    board = Board.parse_instance()
    problem = Bimaru(board)
    goal_node = depth_first_tree_search(problem)
-   print(goal_node.state.board.print(), sep='')
+   print(goal_node.state.board)
    # test try_couracado function
    # problem.initial.try_couracado(0, 0)
    # print(board.board)
