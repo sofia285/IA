@@ -39,7 +39,6 @@ from search import (
 class BimaruState:
    state_id = 0
    
-
    def __init__(self, board):
       self.board = board
       self.id = BimaruState.state_id
@@ -47,15 +46,6 @@ class BimaruState:
 
    def __lt__(self, other):
       return self.id < other.id
-
-   def set_num_boats(self, boat_type, num):
-      self.num_boats[boat_type] = num
-
-   def get_num_boats(self, boat_type):
-      return self.num_boats[boat_type]
-   
-   # TODO: outros metodos da classe
-
 
 class Board:
    """Representação interna de um tabuleiro de Bimaru."""
@@ -122,17 +112,21 @@ class Board:
       else:
          return self.get_value(dim, row + 1, col - 1), self.get_value(dim, row + 1, col + 1)
 
-   def get_empty_spaces_count(self):
+   def get_empty_spaces(self):
       """Devolve se existe algum espaço vazio no tabuleiro."""
       return np.any(self.board[1] == 1)
    
+   def set_num_boats(self, boat_type, num):
+      self.num_boats[boat_type] = num
+   
    def get_boats_count(self):
       """Devolve se existe algum espaço vazio no tabuleiro."""
-      return self.num_boats['couracado'] == 4 and self.num_boats['cruzador'] == 3 and self.num_boats['contratorpecidos'] == 2 and self.num_boats['submarino'] == 1
+      return self.num_boats['couracado'] == N_COURACADO and self.num_boats['cruzador'] == N_CRUZADOR and self.num_boats['contratorpecidos'] == N_CONTRATORPECIDOS and self.num_boats['submarino'] == N_SUBMARINO
 
    def has_been_visited(self, dim: int, row: int, col: int) -> bool:
       """Devolve se a posição já foi visitada."""
       return self.get_value(dim, row, col) == 1
+      #TODO: Esta função não está correcta, pois não verifica se a posição já foi visitada.
 
    def print_board(self, original_board):
       """Imprime o tabuleiro."""
@@ -163,10 +157,17 @@ class Board:
             line += '\n'
          
       print(line)
-   
-   def get_empty_spaces_count(self):
-      """Devolve se existe algum espaço vazio no tabuleiro."""
-      return np.any(board[1] == 1)
+
+   def check_board_validity(self) ->bool:
+         #sums the rows and columns of the first two matrices
+         empy_n_boat_row_sums = np.sum(self.board[:2], axis = 2)
+         empy_n_boat_col_sums = np.sum(self.board[:2], axis = 1)
+
+         #subtracts the sum of the rows and columns from the third matrix
+         rows_diff = np.subtract(np.add(empy_n_boat_row_sums[0], empy_n_boat_row_sums[1]), self.board[2, :, 9])
+         cols_diff = np.subtract(np.add(empy_n_boat_col_sums[0], empy_n_boat_col_sums[1]), self.board[2, :, 0])
+
+         return not (np.any(rows_diff < 0) or np.any(cols_diff < 0))
 
    def fill_water_boats(self) ->bool:
       """Preenche as posições que só podem ter água ou barcos."""
@@ -657,29 +658,37 @@ class Bimaru(Problem):
    def __init__(self, board: Board):
       """O construtor especifica o estado inicial."""
       state = BimaruState(board)
+      super().__init__(state)
 
    def actions(self, state: BimaruState):
       """Retorna uma lista de ações que podem ser executadas a
       partir do estado passado como argumento."""
-      return [WATER, BOAT]
+      if(state.board.check_board_validity() and state.board.get_empty_spaces()):
+         return [WATER, BOAT]
+      else:
+         return []
+      #TODO: Verificar se um barco pode ser colocado naquela posição, verificando as diagonais
 
    def result(self, state: BimaruState, action):
       """Retorna o estado resultante de executar a 'action' sobre
       'state' passado como argumento. A ação a executar deve ser uma
       das presentes na lista obtida pela execução de
       self.actions(state)."""
-      for i in range (10):
-         for j in range (10):
-            if state.board[1][i][j] == 1:
-               state.board[0][i][j] = action
-               state.board[1][i][j] = WATER
-               return state.board
+
+      indices = np.where(state.board.board[1] == 1)
+
+      state.board.board[0][indices[0][0]][indices[1][0]] = action
+      state.board.board[1][indices[0][0]][indices[1][0]] = WATER
+      state.board.fill_water_boats()
+
+      return state
 
    def goal_test(self, state: BimaruState):
       """Retorna True se e só se o estado passado como argumento é
       um estado objetivo. Deve verificar se todas as posições do tabuleiro
       estão preenchidas de acordo com as regras do problema."""
-      return state.board.get_boats_count() and state.board.get_empty_spaces_count()
+
+      return (not state.board.get_empty_spaces()) and state.board.check_board_validity()# state.board.get_boats_count() and 
 
    def h(self, node: Node):
       """Função heuristica utilizada para a procura A*."""
@@ -693,9 +702,17 @@ if __name__ == "__main__":
    original_board, board = Board.parse_instance()
    # Usar uma técnica de procura para resolver a instância,
    board.fill_water_boats()
-   board_state = BimaruState(board)
-   #print(board.board)
+   #  board_state = BimaruState(board)
+
    # Retirar a solução a partir do nó resultante,
    # Imprimir para o standard output no formato indicado.
-   board.print_board(original_board.board)
+   #  board.print_board(original_board.board)
+
+   bimaru = Bimaru(board)
+
+   #print(bimaru.state.board.print_board(original_board.board))   
+
+   solution = breadth_first_tree_search(bimaru)
+
+   solution.state.board.print_board(original_board.board)
    
