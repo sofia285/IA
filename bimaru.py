@@ -64,6 +64,10 @@ class Board:
       """Atribui o valor 'value' à posição especificada pelos argumentos 'row' e 'col'."""
       self.board[dim][row][col] = value
 
+   def boats_count_check(self):
+      """Verifica se o número de barcos é o correto."""
+      return np.count_nonzero(self.board[0] == 1) == 20
+
    def get_empty_spaces(self):
       """Devolve se existe algum espaço vazio no tabuleiro."""
       return np.any(self.board[1] == 1)
@@ -295,6 +299,7 @@ class Board:
          hint_row = int(hint_line[1])
          hint_col = int(hint_line[2])
          original_board[hint_row][hint_col] = hint
+         '''
          hint_row += 1
          hint_col += 1
          if hint[0] == 'W':
@@ -365,27 +370,25 @@ class Board:
                board_pad_water[hint_row - 1][hint_col - 1] = WATER
             
             if hint[0] == 'M':
+                  board_pad_water[hint_row - 1][hint_col - 1] = WATER
+                  board_pad_water[hint_row - 1][hint_col + 1] = WATER
+                  board_pad_water[hint_row + 1][hint_col + 1] = WATER
+                  board_pad_water[hint_row + 1][hint_col - 1] = WATER
                   if hint_row == 1:
                      board_pad_boats[hint_row][hint_col - 1] = BOAT
                      board_pad_boats[hint_row][hint_col + 1] = BOAT
                      board_pad_water[hint_row][hint_col - 1] = WATER
                      board_pad_water[hint_row][hint_col + 1] = WATER
                      if hint_col == 2:
-                        board_pad_water[hint_row + 1][hint_col - 1] = WATER
                         board_pad_water[hint_row + 1][hint_col] = WATER
-                        board_pad_water[hint_row + 1][hint_col + 1] = WATER
                         board_pad_water[hint_row + 1][hint_col + 2] = WATER
                      elif hint_col == 9:
-                        board_pad_water[hint_row + 1][hint_col - 2] = WATER
-                        board_pad_water[hint_row + 1][hint_col - 1] = WATER
                         board_pad_water[hint_row + 1][hint_col] = WATER
-                        board_pad_water[hint_row + 1][hint_col + 1] = WATER
+                        board_pad_water[hint_row + 1][hint_col - 2] = WATER
                      else:
                         board_pad_water[hint_row + 1][hint_col - 2] = WATER
-                        board_pad_water[hint_row + 1][hint_col - 1] = WATER
-                        board_pad_water[hint_row + 1][hint_col] = WATER
-                        board_pad_water[hint_row + 1][hint_col + 1] = WATER
                         board_pad_water[hint_row + 1][hint_col + 2] = WATER
+                        board_pad_water[hint_row + 1][hint_col] = WATER
                   elif hint_row == 10:
                      board_pad_boats[hint_row][hint_col - 1] = BOAT
                      board_pad_boats[hint_row][hint_col + 1] = BOAT
@@ -453,12 +456,412 @@ class Board:
                      board_pad_water[hint_row - 1][hint_col - 1] = WATER
                      board_pad_water[hint_row - 1][hint_col + 1] = WATER
                      board_pad_water[hint_row + 1][hint_col - 1] = WATER
-                     board_pad_water[hint_row + 1][hint_col + 1] = WATER
+                     board_pad_water[hint_row + 1][hint_col + 1] = WATER'''
       
       #creating board with numbers
       board = np.ones((2,10,10), dtype=int)
-      board[0] = board_pad_boats[1:11, 1:11]
-      board[1] = board_pad_water[1:11, 1:11]
+      #board[0] = board_pad_boats[1:11, 1:11]
+      #board[1] = board_pad_water[1:11, 1:11]
+
+      board[0] = np.zeros((10, 10), dtype=int)
+
+      
+      #adding boats and water to new board
+      for row in range (10):
+         for col in range (10):
+            if original_board[row][col] == 'W':
+               board[1][row][col] = WATER
+            elif original_board[row][col] != '':
+               board[0][row][col] = BOAT
+               board[1][row][col] = WATER
+               if original_board[row][col] == 'M':
+                  if row == 0:
+                     board[0][row][col - 1] = BOAT
+                     board[0][row][col + 1] = BOAT
+                     board[1][row][col - 1] = WATER
+                     board[1][row][col + 1] = WATER
+                     if col == 1:
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 1][col + 2] = WATER
+                     elif col == 8:
+                        board[1][row + 1][col - 2] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                     else:
+                        board[1][row + 1][col - 2] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 1][col + 2] = WATER
+                  elif row == 9:
+                     board[0][row][col - 1] = BOAT
+                     board[0][row][col + 1] = BOAT
+                     board[1][row][col - 1] = WATER
+                     board[1][row][col + 1] = WATER
+                     if col == 1:
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row - 1][col + 2] = WATER
+                     elif col == 8:
+                        board[1][row - 1][col - 2] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                     else:
+                        board[1][row - 1][col - 2] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row - 1][col + 2] = WATER
+                  elif col == 0:
+                     board[0][row - 1][col] = BOAT
+                     board[0][row + 1][col] = BOAT
+                     board[1][row - 1][col] = WATER
+                     board[1][row + 1][col] = WATER
+                     if row == 1:
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 2][col + 1] = WATER
+                     elif row == 8:
+                        board[1][row - 2][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                     else:
+                        board[1][row - 2][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 2][col + 1] = WATER
+                  elif col == 9:
+                     board[0][row - 1][col] = BOAT
+                     board[0][row + 1][col] = BOAT
+                     board[1][row - 1][col] = WATER
+                     board[1][row + 1][col] = WATER
+                     if row == 1:
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 2][col - 1] = WATER
+                     elif row == 8:
+                        board[1][row - 2][col - 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                     else:
+                        board[1][row - 2][col - 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 2][col - 1] = WATER
+                  else:
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+
+               elif original_board[row][col] == 'T':
+                  board[0][row + 1][col] = BOAT
+                  board[1][row + 1][col] = WATER
+                  if row == 0:
+                     if col == 0:
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 2][col + 1] = WATER
+                     elif col == 9:
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 2][col - 1] = WATER
+                     else:
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 2][col + 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 2][col - 1] = WATER
+                  elif row == 8:
+                     if col == 0:
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                     elif col == 9:
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                     else:
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                  elif col == 0:
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                     board[1][row + 2][col + 1] = WATER
+                  elif col == 9:
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row + 2][col - 1] = WATER
+                  else:
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                     board[1][row + 2][col + 1] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row + 2][col - 1] = WATER
+
+               elif original_board[row][col] == 'B':
+                  board[0][row - 1][col] = BOAT
+                  board[1][row - 1][col] = WATER
+                  if row == 1:
+                     if col == 0:
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                     elif col == 9:
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                     else:
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                  elif row == 9:
+                     if col == 0:
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row - 2][col + 1] = WATER
+                     elif col == 9:
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 2][col - 1] = WATER
+                     else:
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row - 2][col + 1] = WATER
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 2][col - 1] = WATER
+                  elif col == 0:
+                     board[1][row][col + 1] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row - 2][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                  elif col == 9:
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row - 2][col - 1] = WATER
+                  else:
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row - 2][col - 1] = WATER
+                     board[1][row][col + 1] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row - 2][col + 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+   
+               elif original_board[row][col] == 'R':
+                  board[0][row][col - 1] = BOAT
+                  board[1][row][col - 1] = WATER
+                  if row == 0:
+                     if col == 1:
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                     elif col == 9:
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col - 2] = WATER
+                        board[1][row][col - 2] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 1][col + 2] = WATER
+                  elif row == 0:
+                     if col == 1:
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                     elif col == 9:
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col - 2] = WATER
+                     else:
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row + 1][col - 2] = WATER
+                  elif col == 1:
+                     board[1][row][col + 1] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                  elif col == 9:
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row - 1][col - 2] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row + 1][col - 2] = WATER
+                  else:
+                     board[1][row][col + 1] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row - 1][col - 2] = WATER
+                     board[1][row + 1][col - 2] = WATER
+
+               elif original_board[row][col] == 'L':
+                  board[0][row][col + 1] = BOAT
+                  board[1][row][col + 1] = WATER
+                  if row == 0:
+                     if col == 0:
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 1][col + 2] = WATER
+                     elif col == 8:
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                        board[1][row + 1][col + 2] = WATER
+                  elif row == 9:
+                     if col == 0:
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row - 1][col + 2] = WATER
+                     elif col == 8:
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                        board[1][row - 1][col + 2] = WATER
+                  elif col == 0:
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row - 1][col + 2] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                     board[1][row + 1][col + 2] = WATER
+                  elif col == 8:
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                  else:
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                     board[1][row - 1][col + 2] = WATER
+                     board[1][row + 1][col + 2] = WATER
+                  
+               elif original_board[row][col] == 'C':
+                  if row == 0:
+                     if col == 0:
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                     elif col == 9:
+                        board[1][row][col - 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
+                  elif row == 9:
+                     if col == 0:
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                     elif col == 9:
+                        board[1][row][col - 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                     else:
+                        board[1][row][col - 1] = WATER
+                        board[1][row][col + 1] = WATER
+                        board[1][row - 1][col] = WATER
+                        board[1][row - 1][col - 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
+                  elif col == 0:
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                  elif col == 9:
+                     board[1][row][col - 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col - 1] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                  else:
+                     board[1][row - 1][col] = WATER
+                     board[1][row - 1][col + 1] = WATER
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
+                     board[1][row + 1][col - 1] = WATER
+                     board[1][row][col - 1] = WATER
+                     board[1][row - 1][col - 1] = WATER
       
       #creating vector with hints
       hints = np.zeros((2,10), dtype=int)
@@ -525,6 +928,7 @@ class Bimaru(Problem):
       estão preenchidas de acordo com as regras do problema."""
       if not state.board.check_correct_boats(): return False
       if state.board.get_empty_spaces(): return False
+      if not state.board.boats_count_check(): return False
       if not state.board.check_board_validity(): return False
       return True
 
