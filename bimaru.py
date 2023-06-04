@@ -53,6 +53,7 @@ class Board:
    def __init__(self, board: np.ndarray, hints: np.ndarray):
       """Construtor da classe"""
       self.board = board
+      self.hints = hints
       self.num_boats ={
          'couracado': 0,
          'cruzador': 0,
@@ -60,7 +61,6 @@ class Board:
          'submarino': 0,
       }
 
-      self.hints = hints
 
 
    def get_value(self, dim: int ,row: int, col: int) -> int:
@@ -72,54 +72,9 @@ class Board:
       """Atribui o valor 'value' à posição especificada pelos argumentos 'row' e 'col'."""
       self.board[dim][row][col] = value
 
-   def adjacent_vertical_values(self, dim: int, row: int, col: int) -> tuple:
-      """Devolve os valores imediatamente acima e abaixo,
-      respectivamente."""
-      if row == 0:
-         return None, self.get_value(dim, row + 1, col)
-      elif row == 9:
-         return self.get_value(dim, row - 1, col), None
-      else:
-         return self.get_value(dim, row - 1, col), self.get_value(dim, row + 1, col)
-
-   def adjacent_horizontal_values(self, dim: int, row: int, col: int) -> tuple:
-      """Devolve os valores imediatamente à esquerda e à direita,
-      respectivamente."""
-      if col == 0:
-         return None, self.get_value(dim, row, col + 1)
-      elif col == 9:
-         return self.get_value(dim, row, col - 1), None
-      else:
-         return self.get_value(dim, row, col - 1), self.get_value(dim, row, col + 1)
-      
-   def adjacent_diagonal_top_values(self, dim: int, row: int, col: int) -> tuple:
-      """Devolve os valores imediatamente nas diagonais superiores"""
-      if row == 0: 
-         return None, None
-      elif col == 0:
-         return None, self.get_value(dim, row - 1, col + 1)
-      elif col == 9:
-            return self.get_value(dim, row - 1, col - 1), None
-      else:
-         return self.get_value(dim, row - 1, col - 1), self.get_value(dim, row - 1, col + 1)
-   
-   def adjacent_diagonal_bottom_values(self, dim: int, row: int, col: int) -> tuple:
-      """Devolve os valores imediatamente nas diagonais inferiores"""
-      if row == 9: 
-         return None, None
-      elif col == 0:
-         return None, self.get_value(dim, row + 1, col + 1)
-      elif col == 9:
-            return self.get_value(dim, row + 1, col - 1), None
-      else:
-         return self.get_value(dim, row + 1, col - 1), self.get_value(dim, row + 1, col + 1)
-
    def get_empty_spaces(self):
       """Devolve se existe algum espaço vazio no tabuleiro."""
       return np.any(self.board[1] == 1)
-   
-   def set_num_boats(self, boat_type, num):
-      self.num_boats[boat_type] = num
    
    def get_boats_count(self):
       """Devolve se existe algum espaço vazio no tabuleiro."""
