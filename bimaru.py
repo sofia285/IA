@@ -561,6 +561,6 @@ if __name__ == "__main__":
    bimaru = Bimaru(board)
 
    #print(bimaru.state.board.print_board(original_board.board))   
-   solution = breadth_first_tree_search(bimaru)
+   solution = depth_first_tree_search(bimaru)
    solution.state.board.print_board(original_board.board)
    
