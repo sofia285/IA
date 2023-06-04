@@ -20,7 +20,8 @@ N_COURACADO = 1
 N_CRUZADOR = 2
 N_CONTRATORPECIDOS = 3
 N_SUBMARINO = 4
-#import time
+N_BOATS = 20
+import time
 import numpy as np
 import sys
 from sys import stdin
@@ -65,13 +66,18 @@ class Board:
       """Atribui o valor 'value' à posição especificada pelos argumentos 'row' e 'col'."""
       self.board[dim][row][col] = value
 
-   def get_empty_spaces(self):
+   def empty_spaces_check(self):
       """Devolve se existe algum espaço vazio no tabuleiro."""
       return np.any(self.board[1] == 1)
    
-   #def get_boats_count(self):
-   #   """Devolve se existe algum espaço vazio no tabuleiro."""
-   #   return self.num_boats['couracado'] == N_COURACADO and self.num_boats['cruzador'] == N_CRUZADOR and self.num_boats['contratorpecidos'] == N_CONTRATORPECIDOS and self.num_boats['submarino'] == N_SUBMARINO
+   def boats_count_check(self):
+      """Devolve se o numero de barcos está completo."""
+      boats_count = np.sum(self.board[0])
+      return boats_count == N_BOATS
+   
+   def num_boats_check(self):
+      """Devolve se existe algum espaço vazio no tabuleiro."""
+      return self.num_boats[0] == N_COURACADO and self.num_boats[1] == N_CRUZADOR and self.num_boats[2] == N_CONTRATORPECIDOS
 
    def place_water_diagonals(self, row: int, col: int):
       """Coloca agua nas diagonais de um barco"""
@@ -163,8 +169,6 @@ class Board:
       if(np.any(cols_boats_plus_emptys_minus_hints < 0)): return False
 
       return True
-      #cols_diff = np.subtract(np.add(empy_n_boat_col_sums[0], empy_n_boat_col_sums[1]), self.hints[1])
-      #return not (np.any(rows_diff < 0) or np.any(cols_diff < 0))
 
    def check_correct_boats(self) ->bool:
       """Checks if the board has the correct number of boats"""
@@ -184,7 +188,6 @@ class Board:
 
       contratorpecidos_count = contratorpecidos_spaces - 2*cruzador_spaces + couracado_spaces
       cruzador_count = cruzador_spaces - 2*couracado_spaces
-      #print(contratorpecidos_count, cruzador_count, couracado_spaces)
 
       self.num_boats = [couracado_spaces, cruzador_count, contratorpecidos_count]
 
@@ -223,8 +226,6 @@ class Board:
          return (2, indices_rows, indices_colums)
       
       return (-1, None, None)
-
-      #return contratorpecidos_count == N_CONTRATORPECIDOS and cruzador_count == N_CRUZADOR and couracado_spaces == N_COURACADO
 
    def fill_water_boats(self) -> bool:
       """Preenche as posições que só podem ter água ou barcos."""
@@ -277,8 +278,7 @@ class Board:
       
          #puts water in columns
          for j in cols_indices_1:
-            self.board[1, :, j] = np.zeros(self.board.shape[1])
-         
+            self.board[1, :, j] = np.zeros(self.board.shape[1])      
 
    @staticmethod
    def parse_instance():
@@ -492,7 +492,7 @@ class Bimaru(Problem):
       partir do estado passado como argumento."""
       actions = []
 
-      if(not state.board.get_empty_spaces()) or (not state.board.check_board_validity()):
+      if(not state.board.empty_spaces_check()) or (not state.board.check_board_validity()) or state.board.boats_count_check() or state.board.num_boats_check():
          return actions
 
       (size, row_boats, col_boats) = state.board.get_boats_to_place()
@@ -506,14 +506,6 @@ class Bimaru(Problem):
          actions.append((size, 1, col_boats[0][j], col_boats[1][j]))
       return actions
 
-      # DELETE-----------
-      if(state.board.get_empty_spaces() and state.board.check_board_validity()):
-         return [WATER, BOAT]
-      else:
-         return []
-         
-      
-
    def result(self, state: BimaruState, action):
       """Retorna o estado resultante de executar a 'action' sobre
       'state' passado como argumento. A ação a executar deve ser uma
@@ -522,9 +514,7 @@ class Bimaru(Problem):
 
       new_board = Board(np.copy(state.board.board), state.board.hints)
       new_state = BimaruState(new_board)
-      # print("..............................", action)
-      #new_state.board.print_tensor()
-      #print(state.board.board[0] + state.board.board[1])
+
       if action[0] == -1:
          indices = np.where(new_state.board.board[1] == 1)
          if action[1] == BOAT:
@@ -546,9 +536,8 @@ class Bimaru(Problem):
       """Retorna True se e só se o estado passado como argumento é
       um estado objetivo. Deve verificar se todas as posições do tabuleiro
       estão preenchidas de acordo com as regras do problema."""
-      # print("goal")
       if not state.board.check_correct_boats(): return False
-      if state.board.get_empty_spaces(): return False
+      if state.board.empty_spaces_check(): return False
       if not state.board.check_board_validity(): return False
       return True
 
@@ -559,7 +548,7 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
-   #start = time.time()
+   start = time.time()
 
    # Ler o ficheiro do standard input,
    original_board, board = Board.parse_instance()
@@ -573,8 +562,8 @@ if __name__ == "__main__":
    bimaru = Bimaru(board)
 
    #print(bimaru.state.board.print_board(original_board.board))   
-   solution = breadth_first_tree_search(bimaru)
+   solution = depth_first_tree_search(bimaru)
    solution.state.board.print_board(original_board.board)
-   #end = time.time()
-   #print("Time: ", end - start)
+   end = time.time()
+   print("Time: ", end - start)
    
