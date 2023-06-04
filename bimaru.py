@@ -20,7 +20,6 @@ N_COURACADO = 1
 N_CRUZADOR = 2
 N_CONTRATORPECIDOS = 3
 N_SUBMARINO = 4
-N_BOATS = 20
 #import time
 import numpy as np
 import sys
@@ -59,26 +58,16 @@ class Board:
 
    def get_value(self, dim: int ,row: int, col: int) -> int:
       """Devolve o valor na respetiva posição do tabuleiro."""
-
       return self.board[dim][row][col]
    
    def set_value(self, dim: int, row: int, col: int, value: str):
       """Atribui o valor 'value' à posição especificada pelos argumentos 'row' e 'col'."""
       self.board[dim][row][col] = value
 
-   def empty_spaces_check(self):
+   def get_empty_spaces(self):
       """Devolve se existe algum espaço vazio no tabuleiro."""
       return np.any(self.board[1] == 1)
    
-   def boats_count_check(self):
-      """Devolve se o numero de barcos está completo."""
-      boats_count = np.sum(self.board[0])
-      return boats_count == N_BOATS
-   
-   def num_boats_check(self):
-      """Devolve se existe algum espaço vazio no tabuleiro."""
-      return self.num_boats[0] == N_COURACADO and self.num_boats[1] == N_CRUZADOR and self.num_boats[2] == N_CONTRATORPECIDOS
-
    def place_water_diagonals(self, row: int, col: int):
       """Coloca agua nas diagonais de um barco"""
 
@@ -114,7 +103,6 @@ class Board:
       """Coloca um barco na posição especificada pelos argumentos 'row' e 'col'."""
       self.board[0][row][col] = BOAT
       self.board[1][row][col] = WATER
-
       self.place_water_diagonals(row, col)
 
    def print_board(self, original_board):
@@ -147,12 +135,8 @@ class Board:
          
       print(line)
 
-   def print_tensor(self):
-      print("-----------------------")
-      print(self.board[0]*2 - self.board[1] + np.ones((10,10), dtype=int))
-
    def check_board_validity(self) ->bool:
-      """Checks if the board is valid"""
+      """Verifica se o board é válido"""
 
       #sums the rows and columns of the first two matrices
       empy_n_boat_row_sums = np.sum(self.board[:2], axis = 2)
@@ -171,7 +155,7 @@ class Board:
       return True
 
    def check_correct_boats(self) ->bool:
-      """Checks if the board has the correct number of boats"""
+      """Verifica se os barcos estão corretos"""
       boats = self.board[0]
 
       boats_colums_sum_1 = boats[:-1, :] + boats[1:, :]
@@ -194,6 +178,7 @@ class Board:
       return contratorpecidos_count == N_CONTRATORPECIDOS and cruzador_count == N_CRUZADOR and couracado_spaces == N_COURACADO
 
    def get_boats_to_place(self) ->bool:
+      '''Vê qual é o maior barco que falta colocar e os possiveis lugares onde ele pode ser colocado'''
       boats = self.board[0]
       boats_colums_sum_1 = boats[:-1, :] + boats[1:, :]
       boats_rows_sum_1 = boats[:, :-1] + boats[:, 1:]
@@ -228,7 +213,7 @@ class Board:
       return (-1, None, None)
 
    def fill_water_boats(self) -> bool:
-      """Preenche as posições que só podem ter água ou barcos."""
+      """Preenche as posições que só podem ter água ou barco."""
       diff = True
       while diff:
          #sums the rows and columns of the first two matrices
@@ -278,7 +263,7 @@ class Board:
       
          #puts water in columns
          for j in cols_indices_1:
-            self.board[1, :, j] = np.zeros(self.board.shape[1])      
+            self.board[1, :, j] = np.zeros(self.board.shape[1])   
 
    @staticmethod
    def parse_instance():
@@ -296,6 +281,8 @@ class Board:
 
       #creating board with letters
       original_board = np.zeros((10, 10), dtype = str)
+
+      #creating board with water and board with boats
       board_boats = np.zeros((10, 10), dtype = int)
       board_water = np.ones((10, 10), dtype = int)
       board_pad_boats = np.pad(board_boats, 1)
@@ -473,9 +460,10 @@ class Board:
       board[0] = board_pad_boats[1:11, 1:11]
       board[1] = board_pad_water[1:11, 1:11]
       
+      #creating vector with hints
       hints = np.zeros((2,10), dtype=int)
 
-      #adding hints to board
+      #adding hints to vector
       hints[0][:] = rows
       hints[1][:] = columns
 
@@ -492,20 +480,20 @@ class Bimaru(Problem):
       partir do estado passado como argumento."""
       actions = []
 
-      if(not state.board.empty_spaces_check()) or (not state.board.check_board_validity()) or state.board.boats_count_check() or state.board.num_boats_check():
+      if(not state.board.get_empty_spaces()) or (not state.board.check_board_validity()):
          return actions
 
       (size, row_boats, col_boats) = state.board.get_boats_to_place()
       if(size == -1):
             return [(-1, WATER, 0, 0), (-1, BOAT, 0, 0)]
          
-      for i in range(len(row_boats[0])):
+      for i in range(0, len(row_boats[0])):
          actions.append((size, 0, row_boats[0][i], row_boats[1][i]))
 
-      for j in range(len(col_boats[0])):
+      for j in range(0, len(col_boats[0])):
          actions.append((size, 1, col_boats[0][j], col_boats[1][j]))
       return actions
-
+         
    def result(self, state: BimaruState, action):
       """Retorna o estado resultante de executar a 'action' sobre
       'state' passado como argumento. A ação a executar deve ser uma
@@ -514,7 +502,6 @@ class Bimaru(Problem):
 
       new_board = Board(np.copy(state.board.board), state.board.hints)
       new_state = BimaruState(new_board)
-
       if action[0] == -1:
          indices = np.where(new_state.board.board[1] == 1)
          if action[1] == BOAT:
@@ -537,7 +524,7 @@ class Bimaru(Problem):
       um estado objetivo. Deve verificar se todas as posições do tabuleiro
       estão preenchidas de acordo com as regras do problema."""
       if not state.board.check_correct_boats(): return False
-      if state.board.empty_spaces_check(): return False
+      if state.board.get_empty_spaces(): return False
       if not state.board.check_board_validity(): return False
       return True
 
@@ -546,24 +533,11 @@ class Bimaru(Problem):
       # TODO
       pass
 
-
 if __name__ == "__main__":
-   #start = time.time()
-
-   # Ler o ficheiro do standard input,
    original_board, board = Board.parse_instance()
-   #board.print_tensor()
-
    board.fill_water_boats()
-   #board.print_tensor()
-
    board_state = BimaruState(board)
-
    bimaru = Bimaru(board)
-
-   #print(bimaru.state.board.print_board(original_board.board))   
    solution = depth_first_tree_search(bimaru)
    solution.state.board.print_board(original_board.board)
-   #end = time.time()
-   #print("Time: ", end - start)
    
