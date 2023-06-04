@@ -123,10 +123,43 @@ class Board:
       """Devolve se existe algum espaço vazio no tabuleiro."""
       return self.num_boats['couracado'] == N_COURACADO and self.num_boats['cruzador'] == N_CRUZADOR and self.num_boats['contratorpecidos'] == N_CONTRATORPECIDOS and self.num_boats['submarino'] == N_SUBMARINO
 
-   def has_been_visited(self, dim: int, row: int, col: int) -> bool:
-      """Devolve se a posição já foi visitada."""
-      return self.get_value(dim, row, col) == 1
-      #TODO: Esta função não está correcta, pois não verifica se a posição já foi visitada.
+   def place_water_diagonals(self, row: int, col: int):
+      """Coloca agua nas diagonais de um barco"""
+
+      if row == 0:
+         if col == 0:
+            self.set_value(1, row + 1, col + 1, WATER)
+         elif col == 9:
+            self.set_value(1, row + 1, col - 1, WATER)
+         else:
+            self.set_value(1, row + 1, col - 1, WATER)
+            self.set_value(1, row + 1, col + 1, WATER)
+      elif row == 9:
+         if col == 0:
+            self.set_value(1, row - 1, col + 1, WATER)
+         elif col == 9:
+            self.set_value(1, row - 1, col - 1, WATER)
+         else:
+            self.set_value(1, row - 1, col - 1, WATER)
+            self.set_value(1, row - 1, col + 1, WATER)
+      elif col == 0:
+         self.set_value(1, row - 1, col + 1, WATER)
+         self.set_value(1, row + 1, col + 1, WATER)
+      elif col == 9:
+         self.set_value(1, row - 1, col - 1, WATER)
+         self.set_value(1, row + 1, col - 1, WATER)
+      else:
+         self.set_value(1, row - 1, col - 1, WATER)
+         self.set_value(1, row - 1, col + 1, WATER)
+         self.set_value(1, row + 1, col - 1, WATER)
+         self.set_value(1, row + 1, col + 1, WATER)
+
+   def place_boat(self, row: int, col: int):
+      """Coloca um barco na posição especificada pelos argumentos 'row' e 'col'."""
+      self.board[0][row][col] = BOAT
+      self.board[1][row][col] = WATER
+
+      self.place_water_diagonals(row, col)
 
    def print_board(self, original_board):
       """Imprime o tabuleiro."""
@@ -158,16 +191,47 @@ class Board:
          
       print(line)
 
+   def print_tensor(self):
+      print("-----------------------")
+      print(self.board[0]*2 - self.board[1] + np.ones((10,10), dtype=int))
+
    def check_board_validity(self) ->bool:
-         #sums the rows and columns of the first two matrices
-         empy_n_boat_row_sums = np.sum(self.board[:2], axis = 2)
-         empy_n_boat_col_sums = np.sum(self.board[:2], axis = 1)
+      """Checks if the board is valid"""
 
-         #subtracts the sum of the rows and columns from the third matrix
-         rows_diff = np.subtract(np.add(empy_n_boat_row_sums[0], empy_n_boat_row_sums[1]), self.board[2, :, 9])
-         cols_diff = np.subtract(np.add(empy_n_boat_col_sums[0], empy_n_boat_col_sums[1]), self.board[2, :, 0])
+      #sums the rows and columns of the first two matrices
+      empy_n_boat_row_sums = np.sum(self.board[:2], axis = 2)
+      empy_n_boat_col_sums = np.sum(self.board[:2], axis = 1)
 
-         return not (np.any(rows_diff < 0) or np.any(cols_diff < 0))
+      #subtracts the sum of the rows and columns from the third matrix
+      rows_diff = np.subtract(np.add(empy_n_boat_row_sums[0], empy_n_boat_row_sums[1]), self.board[2, :, 9])
+      cols_diff = np.subtract(np.add(empy_n_boat_col_sums[0], empy_n_boat_col_sums[1]), self.board[2, :, 0])
+
+      #self.print_tensor()
+      #print(rows_diff, cols_diff)
+      #print("erro", np.any(rows_diff < 0), np.any(cols_diff < 0))
+      erro = np.any(rows_diff < 0) or np.any(cols_diff < 0)
+      return not erro
+
+   def check_correct_boats(self) ->bool:
+      """Checks if the board has the correct number of boats"""
+      boats = self.board[0]
+
+      boats_colums_sum_1 = boats[:-1, :] + boats[1:, :]
+      boats_rows_sum_1 = boats[:, :-1] + boats[:, 1:]
+      contratorpecidos_spaces = np.count_nonzero(boats_colums_sum_1 == 2) + np.count_nonzero(boats_rows_sum_1 == 2)
+
+      boats_colums_sum_2 = boats[2:, :] + boats_colums_sum_1[:-1, :]
+      boats_rows_sum_2 = boats[:, 2:] + boats_rows_sum_1[:, :-1]
+      cruzador_spaces = np.count_nonzero(boats_colums_sum_2 == 3) + np.count_nonzero(boats_rows_sum_2 == 3)
+
+      boats_colums_sum_3 = boats[3:, :] + boats_colums_sum_2[:-1, :]
+      boats_rows_sum_3 = boats[:, 3:] + boats_rows_sum_2[:, :-1]
+      couracado_spaces = np.count_nonzero(boats_colums_sum_3 == 4) + np.count_nonzero(boats_rows_sum_3 == 4)
+
+      contratorpecidos_count = contratorpecidos_spaces - 2*cruzador_spaces + couracado_spaces
+      cruzador_count = cruzador_spaces - 2*couracado_spaces
+      #print(contratorpecidos_count, cruzador_count, couracado_spaces)
+      return contratorpecidos_count == N_CONTRATORPECIDOS and cruzador_count == N_CRUZADOR and couracado_spaces == N_COURACADO
 
    def fill_water_boats(self) ->bool:
       """Preenche as posições que só podem ter água ou barcos."""
@@ -202,7 +266,9 @@ class Board:
          
          #puts boats in rows
          for k in rows_indices_2:
-            self.board[0, k, :] = np.add(self.board[1, k, :], self.board[0, k, :])
+            cols_equal_to_one_indices = np.where(self.board[1, k, :] == BOAT)[0]
+            for m in cols_equal_to_one_indices:
+               self.place_boat(k, m)
             self.board[1, k, :] = np.zeros(self.board.shape[2])
 
          #puts water in rows
@@ -211,7 +277,9 @@ class Board:
          
          #puts boats in columns
          for l in cols_indices_2:
-            self.board[0, :, l] = np.add(self.board[1, :, l], self.board[0, :, l])
+            rows_equal_to_one_indices = np.where(self.board[1, :, l] == BOAT)[0]
+            for n in rows_equal_to_one_indices:
+               self.place_boat(n, l)
             self.board[1, :, l] = np.zeros(self.board.shape[1])
       
          #puts water in columns
@@ -264,8 +332,8 @@ class Board:
                board[1][row][col] = WATER
                if original_board[row][col] == 'M':
                   if row == 0:
-                     board[1][row][col - 1] = BOAT
-                     board[1][row][col + 1] = BOAT
+                     board[0][row][col - 1] = BOAT
+                     board[0][row][col + 1] = BOAT
                      board[1][row][col - 1] = WATER
                      board[1][row][col + 1] = WATER
                      if col == 1:
@@ -285,8 +353,8 @@ class Board:
                         board[1][row + 1][col + 1] = WATER
                         board[1][row + 1][col + 2] = WATER
                   elif row == 9:
-                     board[1][row][col - 1] = BOAT
-                     board[1][row][col + 1] = BOAT
+                     board[0][row][col - 1] = BOAT
+                     board[0][row][col + 1] = BOAT
                      board[1][row][col - 1] = WATER
                      board[1][row][col + 1] = WATER
                      if col == 1:
@@ -306,8 +374,8 @@ class Board:
                         board[1][row - 1][col + 1] = WATER
                         board[1][row - 1][col + 2] = WATER
                   elif col == 0:
-                     board[1][row - 1][col] = BOAT
-                     board[1][row + 1][col] = BOAT
+                     board[0][row - 1][col] = BOAT
+                     board[0][row + 1][col] = BOAT
                      board[1][row - 1][col] = WATER
                      board[1][row + 1][col] = WATER
                      if row == 1:
@@ -327,8 +395,8 @@ class Board:
                         board[1][row + 1][col + 1] = WATER
                         board[1][row + 2][col + 1] = WATER
                   elif col == 9:
-                     board[1][row - 1][col] = BOAT
-                     board[1][row + 1][col] = BOAT
+                     board[0][row - 1][col] = BOAT
+                     board[0][row + 1][col] = BOAT
                      board[1][row - 1][col] = WATER
                      board[1][row + 1][col] = WATER
                      if row == 1:
@@ -353,7 +421,7 @@ class Board:
                      board[1][row + 1][col - 1] = WATER
                      board[1][row + 1][col + 1] = WATER
 
-               elif original_board[i][col] == 'T':
+               elif original_board[row][col] == 'T':
                   board[0][row + 1][col] = BOAT
                   board[1][row + 1][col] = WATER
                   if row == 0:
@@ -602,23 +670,23 @@ class Board:
                   if row == 0:
                      if col == 0:
                         board[1][row][col + 1] = WATER
-                        board[1][row - 1][col] = WATER
-                        board[1][row - 1][col + 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col + 1] = WATER
                      elif col == 9:
                         board[1][row][col - 1] = WATER
-                        board[1][row - 1][col] = WATER
-                        board[1][row - 1][col - 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col - 1] = WATER
                      else:
                         board[1][row][col - 1] = WATER
                         board[1][row][col + 1] = WATER
-                        board[1][row - 1][col] = WATER
-                        board[1][row - 1][col - 1] = WATER
-                        board[1][row - 1][col + 1] = WATER
+                        board[1][row + 1][col] = WATER
+                        board[1][row + 1][col - 1] = WATER
+                        board[1][row + 1][col + 1] = WATER
                   elif row == 9:
                      if col == 0:
                         board[1][row][col + 1] = WATER
                         board[1][row - 1][col] = WATER
-                        board[1][row + 1][col + 1] = WATER
+                        board[1][row - 1][col + 1] = WATER
                      elif col == 9:
                         board[1][row][col - 1] = WATER
                         board[1][row - 1][col] = WATER
@@ -642,14 +710,14 @@ class Board:
                      board[1][row - 1][col - 1] = WATER
                      board[1][row + 1][col - 1] = WATER
                   else:
-                     board[1][row][col - 1] = WATER
-                     board[1][row + 1][col] = WATER
-                     board[1][row][col + 1] = WATER
                      board[1][row - 1][col] = WATER
                      board[1][row - 1][col + 1] = WATER
-                     board[1][row - 1][col - 1] = WATER
+                     board[1][row][col + 1] = WATER
+                     board[1][row + 1][col + 1] = WATER
+                     board[1][row + 1][col] = WATER
                      board[1][row + 1][col - 1] = WATER
-                     board[1][row - 1][col + 1] = WATER
+                     board[1][row][col - 1] = WATER
+                     board[1][row - 1][col - 1] = WATER
 
       return Board(original_board), Board(board)
 
@@ -663,11 +731,14 @@ class Bimaru(Problem):
    def actions(self, state: BimaruState):
       """Retorna uma lista de ações que podem ser executadas a
       partir do estado passado como argumento."""
+      #print("///////////////////////////////")
+      #state.board.print_tensor()
+      #print("ACTIONS", state.board.check_board_validity(), state.board.get_empty_spaces())
       if(state.board.check_board_validity() and state.board.get_empty_spaces()):
+         #print("action!")
          return [WATER, BOAT]
       else:
          return []
-      #TODO: Verificar se um barco pode ser colocado naquela posição, verificando as diagonais
 
    def result(self, state: BimaruState, action):
       """Retorna o estado resultante de executar a 'action' sobre
@@ -675,20 +746,28 @@ class Bimaru(Problem):
       das presentes na lista obtida pela execução de
       self.actions(state)."""
 
-      indices = np.where(state.board.board[1] == 1)
+      new_board = Board(np.copy(state.board.board))
+      new_state = BimaruState(new_board)
+      #print("..............................", action)
+      #new_state.board.print_tensor()
+      #print(state.board.board[0] + state.board.board[1])
+      indices = np.where(new_state.board.board[1] == 1)
+      if action == BOAT:
+         new_state.board.place_boat(indices[0][0], indices[1][0])
+      new_state.board.board[0][indices[0][0]][indices[1][0]] = action
+      new_state.board.board[1][indices[0][0]][indices[1][0]] = WATER
+      new_state.board.fill_water_boats()
 
-      state.board.board[0][indices[0][0]][indices[1][0]] = action
-      state.board.board[1][indices[0][0]][indices[1][0]] = WATER
-      state.board.fill_water_boats()
+      #state.board.print_tensor()
 
-      return state
+      return new_state
 
    def goal_test(self, state: BimaruState):
       """Retorna True se e só se o estado passado como argumento é
       um estado objetivo. Deve verificar se todas as posições do tabuleiro
       estão preenchidas de acordo com as regras do problema."""
 
-      return (not state.board.get_empty_spaces()) and state.board.check_board_validity()# state.board.get_boats_count() and 
+      return (not state.board.get_empty_spaces()) and state.board.check_board_validity() and state.board.check_correct_boats()# state.board.get_boats_count() and 
 
    def h(self, node: Node):
       """Função heuristica utilizada para a procura A*."""
@@ -700,19 +779,17 @@ if __name__ == "__main__":
 
    # Ler o ficheiro do standard input,
    original_board, board = Board.parse_instance()
-   # Usar uma técnica de procura para resolver a instância,
-   board.fill_water_boats()
-   #  board_state = BimaruState(board)
+   #print(original_board.board)
+   #board.print_tensor()
 
-   # Retirar a solução a partir do nó resultante,
-   # Imprimir para o standard output no formato indicado.
-   #  board.print_board(original_board.board)
+   board.fill_water_boats()
+   #board.print_tensor()
+
+   board_state = BimaruState(board)
 
    bimaru = Bimaru(board)
 
    #print(bimaru.state.board.print_board(original_board.board))   
-
    solution = breadth_first_tree_search(bimaru)
-
    solution.state.board.print_board(original_board.board)
    
