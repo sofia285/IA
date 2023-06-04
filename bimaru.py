@@ -209,9 +209,7 @@ class Board:
 
       if(self.num_boats[0] < N_COURACADO):
          indices_colums = np.where(np.logical_and(boats_colums_sum_3 + emptys_colums_sum_3 == 4, boats_colums_sum_3 < 4 ))
-         #indices_colums = np.where((boats_colums_sum_3 + emptys_colums_sum_3 == 4) and boats_colums_sum_3 < 4 )
          indices_rows = np.where(np.logical_and(boats_rows_sum_3 + emptys_rows_sum_3 == 4, boats_rows_sum_3 < 4))
-         #indices_rows = np.where(boats_rows_sum_3 + emptys_rows_sum_3 == 4 and boats_rows_sum_3 < 4)
          return (4, indices_rows, indices_colums)
 
       if(self.num_boats[1] < N_CRUZADOR):
@@ -497,18 +495,14 @@ class Bimaru(Problem):
       if(not state.board.get_empty_spaces()) or (not state.board.check_board_validity()):
          return actions
 
-      #print("actions")
-      #print(state.board.num_boats)
-      #print("///////////////////////////////")
-      #state.board.print_tensor()
       (size, row_boats, col_boats) = state.board.get_boats_to_place()
       if(size == -1):
             return [(-1, WATER, 0, 0), (-1, BOAT, 0, 0)]
          
-      for i in range(0, len(row_boats[0])):
+      for i in range(len(row_boats[0])):
          actions.append((size, 0, row_boats[0][i], row_boats[1][i]))
 
-      for j in range(0, len(col_boats[0])):
+      for j in range(len(col_boats[0])):
          actions.append((size, 1, col_boats[0][j], col_boats[1][j]))
       return actions
 
@@ -579,7 +573,7 @@ if __name__ == "__main__":
    bimaru = Bimaru(board)
 
    #print(bimaru.state.board.print_board(original_board.board))   
-   solution = depth_first_tree_search(bimaru)
+   solution = breadth_first_tree_search(bimaru)
    solution.state.board.print_board(original_board.board)
    #end = time.time()
    #print("Time: ", end - start)
