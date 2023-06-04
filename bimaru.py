@@ -215,10 +215,6 @@ class Board:
          return (2, indices_rows, indices_colums)
       
       return (-1, None, None)
-   
-   def print_tensor(self):
-      print("-----------------------")
-      print(self.board[0]*2 - self.board[1] + np.ones((10,10), dtype=int))
 
    def fill_water_boats(self) -> bool:
       """Preenche as posições que só podem ter água ou barco."""
@@ -398,20 +394,14 @@ class Board:
                      board_pad_water[hint_row][hint_col - 1] = WATER
                      board_pad_water[hint_row][hint_col + 1] = WATER
                      if hint_col == 2:
-                        board_pad_water[hint_row - 1][hint_col - 1] = WATER
                         board_pad_water[hint_row - 1][hint_col] = WATER
-                        board_pad_water[hint_row - 1][hint_col + 1] = WATER
                         board_pad_water[hint_row - 1][hint_col + 2] = WATER
                      elif hint_col == 9:
                         board_pad_water[hint_row - 1][hint_col - 2] = WATER
-                        board_pad_water[hint_row - 1][hint_col - 1] = WATER
                         board_pad_water[hint_row - 1][hint_col] = WATER
-                        board_pad_water[hint_row - 1][hint_col + 1] = WATER
                      else:
                         board_pad_water[hint_row - 1][hint_col - 2] = WATER
-                        board_pad_water[hint_row - 1][hint_col - 1] = WATER
                         board_pad_water[hint_row - 1][hint_col] = WATER
-                        board_pad_water[hint_row - 1][hint_col + 1] = WATER
                         board_pad_water[hint_row - 1][hint_col + 2] = WATER
                   elif hint_col == 1:
                      board_pad_boats[hint_row - 1][hint_col] = BOAT
@@ -419,20 +409,14 @@ class Board:
                      board_pad_water[hint_row - 1][hint_col] = WATER
                      board_pad_water[hint_row + 1][hint_col] = WATER
                      if hint_row == 2:
-                        board_pad_water[hint_row - 1][hint_col + 1] = WATER
                         board_pad_water[hint_row][hint_col + 1] = WATER
-                        board_pad_water[hint_row + 1][hint_col + 1] = WATER
                         board_pad_water[hint_row + 2][hint_col + 1] = WATER
                      elif hint_row == 9:
                         board_pad_water[hint_row - 2][hint_col + 1] = WATER
-                        board_pad_water[hint_row - 1][hint_col + 1] = WATER
                         board_pad_water[hint_row][hint_col + 1] = WATER
-                        board_pad_water[hint_row + 1][hint_col + 1] = WATER
                      else:
                         board_pad_water[hint_row - 2][hint_col + 1] = WATER
-                        board_pad_water[hint_row - 1][hint_col + 1] = WATER
                         board_pad_water[hint_row][hint_col + 1] = WATER
-                        board_pad_water[hint_row + 1][hint_col + 1] = WATER
                         board_pad_water[hint_row + 2][hint_col + 1] = WATER
                   elif hint_col == 10:
                      board_pad_boats[hint_row - 1][hint_col] = BOAT
@@ -440,26 +424,15 @@ class Board:
                      board_pad_water[hint_row - 1][hint_col] = WATER
                      board_pad_water[hint_row + 1][hint_col] = WATER
                      if hint_row == 2:
-                        board_pad_water[hint_row - 1][hint_col - 1] = WATER
                         board_pad_water[hint_row][hint_col - 1] = WATER
-                        board_pad_water[hint_row + 1][hint_col - 1] = WATER
                         board_pad_water[hint_row + 2][hint_col - 1] = WATER
                      elif hint_row == 9:
                         board_pad_water[hint_row - 2][hint_col - 1] = WATER
-                        board_pad_water[hint_row - 1][hint_col - 1] = WATER
                         board_pad_water[hint_row][hint_col - 1] = WATER
-                        board_pad_water[hint_row + 1][hint_col - 1] = WATER
                      else:
                         board_pad_water[hint_row - 2][hint_col - 1] = WATER
-                        board_pad_water[hint_row - 1][hint_col - 1] = WATER
                         board_pad_water[hint_row][hint_col - 1] = WATER
-                        board_pad_water[hint_row + 1][hint_col - 1] = WATER
                         board_pad_water[hint_row + 2][hint_col - 1] = WATER
-                  else:
-                     board_pad_water[hint_row - 1][hint_col - 1] = WATER
-                     board_pad_water[hint_row - 1][hint_col + 1] = WATER
-                     board_pad_water[hint_row + 1][hint_col - 1] = WATER
-                     board_pad_water[hint_row + 1][hint_col + 1] = WATER
       
       #creating board with numbers
       board = np.ones((2,10,10), dtype=int)
