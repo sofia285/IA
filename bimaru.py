@@ -20,7 +20,7 @@ N_COURACADO = 1
 N_CRUZADOR = 2
 N_CONTRATORPECIDOS = 3
 N_SUBMARINO = 4
-import time
+#import time
 import numpy as np
 import sys
 from sys import stdin
@@ -565,7 +565,7 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
-   start = time.time()
+   #start = time.time()
 
    # Ler o ficheiro do standard input,
    original_board, board = Board.parse_instance()
@@ -581,6 +581,6 @@ if __name__ == "__main__":
    #print(bimaru.state.board.print_board(original_board.board))   
    solution = depth_first_tree_search(bimaru)
    solution.state.board.print_board(original_board.board)
-   end = time.time()
-   print("Time: ", end - start)
+   #end = time.time()
+   #print("Time: ", end - start)
    
