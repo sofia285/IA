@@ -204,11 +204,19 @@ class Board:
       empy_n_boat_row_sums = np.sum(self.board[:2], axis = 2)
       empy_n_boat_col_sums = np.sum(self.board[:2], axis = 1)
 
-      #subtracts the sum of the rows and columns from the third matrix
-      rows_diff = np.subtract(np.add(empy_n_boat_row_sums[0], empy_n_boat_row_sums[1]), self.hints[0])
-      cols_diff = np.subtract(np.add(empy_n_boat_col_sums[0], empy_n_boat_col_sums[1]), self.hints[1])
+      rows_boats_minus_hints  = empy_n_boat_row_sums[0] - self.hints[0]
+      if(np.any(rows_boats_minus_hints > 0)): return False
+      rows_boats_plus_emptys_minus_hints =  rows_boats_minus_hints + empy_n_boat_row_sums[1]
+      if(np.any(rows_boats_plus_emptys_minus_hints < 0)): return False
 
-      return not (np.any(rows_diff < 0) or np.any(cols_diff < 0))
+      cols_boats_minus_hints = empy_n_boat_col_sums[0] - self.hints[1]
+      if(np.any(cols_boats_minus_hints > 0)): return False
+      cols_boats_plus_emptys_minus_hints = cols_boats_minus_hints + empy_n_boat_col_sums[1]
+      if(np.any(cols_boats_plus_emptys_minus_hints < 0)): return False
+
+      return True
+      #cols_diff = np.subtract(np.add(empy_n_boat_col_sums[0], empy_n_boat_col_sums[1]), self.hints[1])
+      #return not (np.any(rows_diff < 0) or np.any(cols_diff < 0))
 
    def check_correct_boats(self) ->bool:
       """Checks if the board has the correct number of boats"""
@@ -283,6 +291,7 @@ class Board:
          #puts water in columns
          for j in cols_indices_1:
             self.board[1, :, j] = np.zeros(self.board.shape[1])
+         
 
    @staticmethod
    def parse_instance():
@@ -338,8 +347,8 @@ class Board:
                board_pad_water[hint_row + 1][hint_col] = WATER
                board_pad_water[hint_row + 1][hint_col - 1] = WATER
                board_pad_water[hint_row][hint_col - 1] = WATER
-               board_pad_water[hint_row + 1][hint_col - 1] = WATER
-               board_pad_water[hint_row + 2][hint_col - 1] = WATER
+               board_pad_water[hint_row - 1][hint_col - 1] = WATER
+               board_pad_water[hint_row - 2][hint_col - 1] = WATER
                board_pad_water[hint_row + 1][hint_col + 1] = WATER
                board_pad_water[hint_row][hint_col + 1] = WATER
                board_pad_water[hint_row - 1][hint_col + 1] = WATER
@@ -544,7 +553,7 @@ if __name__ == "__main__":
    original_board, board = Board.parse_instance()
    #board.print_tensor()
 
-   #board.fill_water_boats()
+   board.fill_water_boats()
    #board.print_tensor()
 
    board_state = BimaruState(board)
