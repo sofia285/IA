@@ -20,7 +20,7 @@ N_COURACADO = 1
 N_CRUZADOR = 2
 N_CONTRATORPECIDOS = 3
 N_SUBMARINO = 4
-
+import time
 import numpy as np
 import sys
 from sys import stdin
@@ -184,36 +184,44 @@ class Board:
 
       contratorpecidos_count = contratorpecidos_spaces - 2*cruzador_spaces + couracado_spaces
       cruzador_count = cruzador_spaces - 2*couracado_spaces
+      #print(contratorpecidos_count, cruzador_count, couracado_spaces)
 
       self.num_boats = [couracado_spaces, cruzador_count, contratorpecidos_count]
 
       return contratorpecidos_count == N_CONTRATORPECIDOS and cruzador_count == N_CRUZADOR and couracado_spaces == N_COURACADO
 
-   def get_actions(self) ->bool:
-      boats = self.board[0] + self.board[1] 
-
+   def get_boats_to_place(self) ->bool:
+      boats = self.board[0]
       boats_colums_sum_1 = boats[:-1, :] + boats[1:, :]
       boats_rows_sum_1 = boats[:, :-1] + boats[:, 1:]
-
       boats_colums_sum_2 = boats[2:, :] + boats_colums_sum_1[:-1, :]
       boats_rows_sum_2 = boats[:, 2:] + boats_rows_sum_1[:, :-1]
-
       boats_colums_sum_3 = boats[3:, :] + boats_colums_sum_2[:-1, :]
       boats_rows_sum_3 = boats[:, 3:] + boats_rows_sum_2[:, :-1]
 
+      emptys = self.board[1] 
+      emptys_colums_sum_1 = emptys[:-1, :] + emptys[1:, :]
+      emptys_rows_sum_1 = emptys[:, :-1] + emptys[:, 1:]
+      emptys_colums_sum_2 = emptys[2:, :] + emptys_colums_sum_1[:-1, :]
+      emptys_rows_sum_2 = emptys[:, 2:] + emptys_rows_sum_1[:, :-1]
+      emptys_colums_sum_3 = emptys[3:, :] + emptys_colums_sum_2[:-1, :]
+      emptys_rows_sum_3 = emptys[:, 3:] + emptys_rows_sum_2[:, :-1]
+
       if(self.num_boats[0] < N_COURACADO):
-         indices_colums = np.where(boats_colums_sum_3 == 4)
-         indices_rows = np.where(boats_rows_sum_3 == 4)
+         indices_colums = np.where(np.logical_and(boats_colums_sum_3 + emptys_colums_sum_3 == 4, boats_colums_sum_3 < 4 ))
+         #indices_colums = np.where((boats_colums_sum_3 + emptys_colums_sum_3 == 4) and boats_colums_sum_3 < 4 )
+         indices_rows = np.where(np.logical_and(boats_rows_sum_3 + emptys_rows_sum_3 == 4, boats_rows_sum_3 < 4))
+         #indices_rows = np.where(boats_rows_sum_3 + emptys_rows_sum_3 == 4 and boats_rows_sum_3 < 4)
          return (4, indices_rows, indices_colums)
 
       if(self.num_boats[1] < N_CRUZADOR):
-         indices_colums = np.where(boats_colums_sum_2 == 3)
-         indices_rows = np.where(boats_rows_sum_2 == 3)
+         indices_colums = np.where(np.logical_and(boats_colums_sum_2 + emptys_colums_sum_2 == 3, boats_colums_sum_2 < 3))
+         indices_rows = np.where(np.logical_and(boats_rows_sum_2 + emptys_rows_sum_2 == 3, boats_rows_sum_2 < 3))
          return (3, indices_rows, indices_colums)
       
       if(self.num_boats[2] < N_CONTRATORPECIDOS):
-         indices_colums = np.where(boats_colums_sum_1 == 2)
-         indices_rows = np.where(boats_rows_sum_1 == 2)
+         indices_colums = np.where(np.logical_and(boats_colums_sum_1 + emptys_colums_sum_1 == 2, boats_colums_sum_1 < 2))
+         indices_rows = np.where(np.logical_and(boats_rows_sum_1 + emptys_rows_sum_1 == 2, boats_rows_sum_1 < 2))
          return (2, indices_rows, indices_colums)
       
       return (-1, None, None)
@@ -484,16 +492,33 @@ class Bimaru(Problem):
    def actions(self, state: BimaruState):
       """Retorna uma lista de ações que podem ser executadas a
       partir do estado passado como argumento."""
+      actions = []
+
+      if(not state.board.get_empty_spaces()) or (not state.board.check_board_validity()):
+         return actions
+
       #print("actions")
       #print(state.board.num_boats)
       #print("///////////////////////////////")
       #state.board.print_tensor()
-      #print(state.board.get_actions())
+      (size, row_boats, col_boats) = state.board.get_boats_to_place()
+      if(size == -1):
+            return [(-1, WATER, 0, 0), (-1, BOAT, 0, 0)]
+         
+      for i in range(0, len(row_boats[0])):
+         actions.append((size, 0, row_boats[0][i], row_boats[1][i]))
 
+      for j in range(0, len(col_boats[0])):
+         actions.append((size, 1, col_boats[0][j], col_boats[1][j]))
+      return actions
+
+      # DELETE-----------
       if(state.board.get_empty_spaces() and state.board.check_board_validity()):
          return [WATER, BOAT]
       else:
          return []
+         
+      
 
    def result(self, state: BimaruState, action):
       """Retorna o estado resultante de executar a 'action' sobre
@@ -503,11 +528,22 @@ class Bimaru(Problem):
 
       new_board = Board(np.copy(state.board.board), state.board.hints)
       new_state = BimaruState(new_board)
-      indices = np.where(new_state.board.board[1] == 1)
-      if action == BOAT:
-         new_state.board.place_boat(indices[0][0], indices[1][0])
-      new_state.board.board[0][indices[0][0]][indices[1][0]] = action
-      new_state.board.board[1][indices[0][0]][indices[1][0]] = WATER
+      # print("..............................", action)
+      #new_state.board.print_tensor()
+      #print(state.board.board[0] + state.board.board[1])
+      if action[0] == -1:
+         indices = np.where(new_state.board.board[1] == 1)
+         if action[1] == BOAT:
+            new_state.board.place_boat(indices[0][0], indices[1][0])
+         new_state.board.board[0][indices[0][0]][indices[1][0]] = action[1]
+         new_state.board.board[1][indices[0][0]][indices[1][0]] = WATER
+      elif action[1] == 0:
+         for i in range(action[0]):
+            new_state.board.place_boat(action[2], action[3] + i)
+      elif action[1] == 1:
+         for i in range(action[0]):
+            new_state.board.place_boat(action[2] + i, action[3])
+
       new_state.board.fill_water_boats()
 
       return new_state
@@ -516,6 +552,7 @@ class Bimaru(Problem):
       """Retorna True se e só se o estado passado como argumento é
       um estado objetivo. Deve verificar se todas as posições do tabuleiro
       estão preenchidas de acordo com as regras do problema."""
+      # print("goal")
       if not state.board.check_correct_boats(): return False
       if state.board.get_empty_spaces(): return False
       if not state.board.check_board_validity(): return False
@@ -528,11 +565,14 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
+   start = time.time()
 
    # Ler o ficheiro do standard input,
    original_board, board = Board.parse_instance()
+   #board.print_tensor()
 
    board.fill_water_boats()
+   #board.print_tensor()
 
    board_state = BimaruState(board)
 
@@ -541,4 +581,6 @@ if __name__ == "__main__":
    #print(bimaru.state.board.print_board(original_board.board))   
    solution = depth_first_tree_search(bimaru)
    solution.state.board.print_board(original_board.board)
+   end = time.time()
+   print("Time: ", end - start)
    
