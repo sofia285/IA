@@ -1,7 +1,3 @@
-# bimaru.py: Template para implementação do projeto de Inteligência Artificial 2022/2023.
-# Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
-# Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
-
 # Grupo 72:
 # 102835 Sofia Paiva
 # 102904 Mariana Miranda
@@ -20,7 +16,7 @@ N_COURACADO = 1
 N_CRUZADOR = 2
 N_CONTRATORPECIDOS = 3
 N_SUBMARINO = 4
-#import time
+
 import numpy as np
 import sys
 from sys import stdin
@@ -55,12 +51,8 @@ class Board:
       self.board = board
       self.hints = hints
       self.num_boats = [-1, -1, -1]
-
-   def get_value(self, dim: int ,row: int, col: int) -> int:
-      """Devolve o valor na respetiva posição do tabuleiro."""
-      return self.board[dim][row][col]
    
-   def set_value(self, dim: int, row: int, col: int, value: str):
+   def set_value(self, dim: int, row: int, col: int, value: int):
       """Atribui o valor 'value' à posição especificada pelos argumentos 'row' e 'col'."""
       self.board[dim][row][col] = value
 
@@ -181,7 +173,7 @@ class Board:
 
       return contratorpecidos_count == N_CONTRATORPECIDOS and cruzador_count == N_CRUZADOR and couracado_spaces == N_COURACADO
 
-   def get_boats_to_place(self) ->bool:
+   def get_boats_to_place(self):
       '''Vê qual é o maior barco que falta colocar e os possiveis lugares onde ele pode ser colocado'''
       boats = self.board[0]
       boats_colums_sum_1 = boats[:-1, :] + boats[1:, :]
@@ -216,7 +208,7 @@ class Board:
       
       return (-1, None, None)
 
-   def fill_water_boats(self) -> bool:
+   def fill_water_boats(self):
       """Preenche as posições que só podem ter água ou barco."""
       diff = True
       while diff:
